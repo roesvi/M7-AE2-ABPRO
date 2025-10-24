@@ -48,7 +48,7 @@
           <div class="card course-card h-100 shadow-sm">
             <div class="card-img-container">
               <img
-                :src="course.img"
+                :src="getCourseImage(course)"
                 class="card-img-top course-image"
                 :alt="course.nombre"
                 @error="handleImageError"
@@ -137,21 +137,32 @@
 
 <script setup>
 import { onMounted, computed } from 'vue'
-import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+import { useCoursesStore } from '../stores/courses'
+import { useAuthStore } from '../stores/auth'
 import Navbar from './Navbar.vue'
 
-const store = useStore()
+const router = useRouter()
+const coursesStore = useCoursesStore()
+const authStore = useAuthStore()
 
-const courses = computed(() => store.getters.courses)
-const loading = computed(() => store.getters.loading)
-const showLoginMessage = computed(() => store.getters.showLoginMessage)
+const courses = computed(() => coursesStore.courses)
+const loading = computed(() => coursesStore.loading)
+const showLoginMessage = computed(() => authStore.showLoginMessage)
 
 const hideLoginMessage = () => {
-  store.dispatch('hideLoginMessage')
+  authStore.showLoginMessage = false
+}
+
+const getCourseImage = (course) => {
+  if (course.nombre && course.nombre.toLowerCase().includes('css')) {
+    return new URL('../assets/CSS3.png', import.meta.url).href
+  }
+  return course.img || new URL('../assets/noDisponible.png', import.meta.url).href
 }
 
 const handleImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/300x200?text=Imagen+no+disponible'
+  event.target.src = new URL('../assets/noDisponible.png', import.meta.url).href
 }
 
 const inscribirseCurso = (course) => {
@@ -161,7 +172,7 @@ const inscribirseCurso = (course) => {
 
 onMounted(() => {
   // Suscribirse a los cambios en la colección de cursos
-  store.dispatch('subscribeToCourses')
+  coursesStore.subscribeToCourses()
 })
 </script>
 

@@ -1,14 +1,17 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createStore } from 'vuex'
 import App from './App.vue'
 import './style.css'
+
+// Initialize Pinia
+const pinia = createPinia()
 
 // Importar Bootstrap CSS (sin BootstrapVue por ahora)
 import 'bootstrap/dist/css/bootstrap.css'
 
-// Importar store
-import store from './store'
+// Importar el store de autenticación (se inicializará después de que Pinia esté listo)
+let authStore = null
 
 // Definir rutas
 const routes = [
@@ -54,9 +57,18 @@ const router = createRouter({
   routes
 })
 
+// Importar el store de autenticación para el guard
+import { useAuthStore } from './stores/auth'
+
 // Guard de navegación
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = store.getters.isAuthenticated
+router.beforeEach(async (to, from, next) => {
+  // Obtener el store de autenticación
+  const authStore = useAuthStore()
+  
+  // Esperar a que se resuelva el estado de autenticación
+  await new Promise(resolve => setTimeout(resolve, 0))
+  
+  const isAuthenticated = authStore.isAuthenticated()
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!isAuthenticated) {
@@ -74,12 +86,14 @@ router.beforeEach((to, from, next) => {
 // Crear aplicación
 const app = createApp(App)
 
-// Usar store y router
-app.use(store)
+// Usar Pinia primero
+app.use(pinia)
+
+// Inicializar el store de autenticación después de que Pinia esté listo
+authStore = useAuthStore()
+authStore.init()
+
+// Luego usar el router
 app.use(router)
 
-// Inicializar observador de autenticación
-store.dispatch('observeAuthState')
-
-// Montar aplicación
 app.mount('#app')

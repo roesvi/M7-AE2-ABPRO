@@ -49,21 +49,50 @@ Antes de comenzar, asegúrate de tener instalado:
 
 - **Node.js** (versión 16 o superior)
 - **npm** o **yarn**
+- **Git** (para clonar el repositorio)
+- **Firebase CLI** (para despliegue)
 - Una cuenta de **Firebase** con un proyecto configurado
 
-## 🔧 Instalación
+### Instalación de Firebase CLI
+
+```bash
+npm install -g firebase-tools
+```
+
+### Iniciar sesión en Firebase
+
+```bash
+firebase login
+```
+
+## 🚀 Instalación y Configuración
 
 ### 1. Clonar el repositorio
 
 ```bash
 git clone <url-del-repositorio>
-cd consumo_api
+cd pruebas_unitarias
 ```
 
 ### 2. Instalar dependencias
 
 ```bash
 npm install
+# o
+yarn
+```
+
+### 3. Configuración del entorno
+
+Crea un archivo `.env` en la raíz del proyecto con las siguientes variables de entorno:
+
+```env
+VITE_API_KEY=tu_api_key_de_firebase
+VITE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
+VITE_PROJECT_ID=tu-proyecto-id
+VITE_STORAGE_BUCKET=tu-proyecto.appspot.com
+VITE_MESSAGING_SENDER_ID=tu_sender_id
+VITE_APP_ID=tu_app_id
 ```
 
 ### 3. Configurar Firebase
@@ -93,11 +122,58 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 ```
 
-### 4. Cargar datos iniciales (Opcional)
+### 4. Iniciar el servidor de desarrollo
+
+```bash
+npm run dev
+# o
+yarn dev
+```
+
+La aplicación estará disponible en [http://localhost:5173](http://localhost:5173)
+
+### 5. Cargar datos iniciales (Opcional)
 
 Para cargar cursos de ejemplo en Firestore:
 
-1. Abre el archivo `loadInitialCourses.js`
+```bash
+node loadInitialCourses.js
+```
+
+## 🚀 Despliegue en Firebase Hosting
+
+### 1. Construir la aplicación para producción
+
+```bash
+npm run build
+# o
+yarn build
+```
+
+### 2. Inicializar Firebase (solo primera vez)
+
+```bash
+firebase init hosting
+```
+
+Selecciona las siguientes opciones:
+- ¿Qué servicio quieres configurar? **Hosting**
+- Usar un proyecto existente  
+- ¿Qué quieres usar como directorio público? **dist**
+- Configurar como single-page app: **Sí**
+- Sobrescribir index.html: **No**
+
+### 3. Desplegar la aplicación
+
+```bash
+firebase deploy --only hosting
+```
+
+Después de un despliegue exitoso, la URL de producción se mostrará en la consola.
+
+### 4. Configuración de dominios personalizados (Opcional)
+
+Puedes configurar un dominio personalizado desde la [consola de Firebase](https://console.firebase.google.com/) en la sección de Hosting.
 2. Descomenta la última línea: `loadInitialCourses()`
 3. Ejecuta el script:
 

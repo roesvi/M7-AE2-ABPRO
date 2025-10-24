@@ -6,16 +6,15 @@
 
 <script>
 import { onMounted } from 'vue'
-import { useStore } from 'vuex'
+import { useAuthStore } from './stores/auth'
 
 export default {
   name: 'App',
   setup() {
-    const store = useStore()
+    const authStore = useAuthStore()
 
     onMounted(() => {
-      // Initialize auth state observer
-      store.dispatch('observeAuthState')
+      // Auth state is now initialized in main.js
     })
   }
 }

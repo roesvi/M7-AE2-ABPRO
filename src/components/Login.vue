@@ -35,10 +35,10 @@
                 <button
                   type="submit"
                   class="btn btn-primary"
-                  :disabled="loading"
+                  :disabled="authStore.loading"
                 >
-                  <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-                  {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+                  <span v-if="authStore.loading" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ authStore.loading ? 'Iniciando sesión...' : 'Iniciar sesión' }}
                 </button>
               </div>
             </form>
@@ -61,35 +61,24 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-const store = useStore()
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
-const loading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
-  loading.value = true
   error.value = ''
-
-  try {
-    const result = await store.dispatch('login', {
-      email: email.value,
-      password: password.value
-    })
-
-    if (result.success) {
-      router.push('/home')
-    } else {
-      error.value = result.error || 'Error al iniciar sesión'
-    }
-  } catch (err) {
-    error.value = 'Error inesperado al iniciar sesión'
-  } finally {
-    loading.value = false
+  
+  const result = await authStore.login(email.value, password.value)
+  
+  if (result.success) {
+    router.push('/home')
+  } else {
+    error.value = result.error || 'Error al iniciar sesión'
   }
 }
 </script>

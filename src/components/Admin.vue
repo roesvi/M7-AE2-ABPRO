@@ -299,13 +299,14 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useCoursesStore } from '../stores/courses'
 import Navbar from './Navbar.vue'
 
-const store = useStore()
+const coursesStore = useCoursesStore()
 
-const courses = computed(() => store.getters.courses)
-const loading = computed(() => store.getters.loading)
+const courses = computed(() => coursesStore.courses)
+const loading = computed(() => coursesStore.loading)
+const error = computed(() => coursesStore.error)
 
 const showAddModal = ref(false)
 const showEditModal = ref(false)
@@ -315,6 +316,7 @@ const courseToDelete = ref(null)
 
 // Formulario reactivo para cursos
 const courseForm = reactive({
+  id: '',
   codigo: '',
   nombre: '',
   estado: true,
@@ -334,6 +336,7 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
+  courseForm.id = ''
   courseForm.codigo = ''
   courseForm.nombre = ''
   courseForm.estado = true
@@ -359,55 +362,32 @@ const confirmDeleteCourse = (course) => {
 const saveCourse = async () => {
   try {
     if (editingCourse.value) {
-      // Actualizar curso existente
-      const result = await store.dispatch('updateCourse', {
-        id: editingCourse.value.id,
+      await coursesStore.updateCourse({
+        id: courseForm.id,
         ...courseForm
       })
-
-      if (result.success) {
-        closeModal()
-        alert('Curso actualizado correctamente')
-      } else {
-        alert('Error al actualizar el curso: ' + (result.error || 'Error desconocido'))
-      }
     } else {
-      // Agregar nuevo curso
-      const result = await store.dispatch('addCourse', courseForm)
-
-      if (result.success) {
-        closeModal()
-        alert('Curso agregado correctamente')
-      } else {
-        alert('Error al agregar el curso: ' + (result.error || 'Error desconocido'))
-      }
+      await coursesStore.addCourse(courseForm)
     }
-  } catch (error) {
-    alert('Error inesperado: ' + error.message)
+    closeModal()
+  } catch (err) {
+    console.error('Error al guardar el curso:', err)
   }
 }
 
 const deleteCourse = async () => {
-  if (!courseToDelete.value) return
-
   try {
-    const result = await store.dispatch('deleteCourse', courseToDelete.value.id)
-
-    if (result.success) {
-      showDeleteModal.value = false
-      courseToDelete.value = null
-      alert('Curso eliminado correctamente')
-    } else {
-      alert('Error al eliminar el curso: ' + (result.error || 'Error desconocido'))
-    }
-  } catch (error) {
-    alert('Error inesperado: ' + error.message)
+    await coursesStore.deleteCourse(courseToDelete.value.id)
+    showDeleteModal.value = false
+    courseToDelete.value = null
+  } catch (err) {
+    console.error('Error al eliminar el curso:', err)
   }
 }
 
 onMounted(() => {
   // Suscribirse a los cambios en la colección de cursos
-  store.dispatch('subscribeToCourses')
+  coursesStore.subscribeToCourses()
 })
 </script>
 

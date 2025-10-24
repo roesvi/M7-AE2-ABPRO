@@ -37,15 +37,15 @@
         <div class="d-flex align-items-center">
           <span class="navbar-text me-3 text-white">
             <i class="bi bi-person-circle me-1"></i>
-            {{ user?.email }}
+            Bienvenido, {{ authStore.user?.email }}
           </span>
           <button
             class="btn btn-outline-light btn-sm"
             @click="handleLogout"
-            :disabled="loading"
+            :disabled="authStore.loading"
           >
             <i class="bi bi-box-arrow-right me-1"></i>
-            {{ loading ? 'Saliendo...' : 'Salir' }}
+            {{ authStore.loading ? 'Saliendo...' : 'Salir' }}
           </button>
         </div>
       </div>
@@ -56,17 +56,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-const store = useStore()
-
-const user = computed(() => store.getters.user)
-const loading = computed(() => store.getters.loading)
+const authStore = useAuthStore()
 
 const handleLogout = async () => {
   try {
-    const result = await store.dispatch('logout')
+    const result = await authStore.logout()
     if (result.success) {
       router.push('/login')
     }
