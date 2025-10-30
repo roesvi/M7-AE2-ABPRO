@@ -8,7 +8,9 @@ import {
   doc,
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  where,
+  getDocs
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
@@ -71,17 +73,40 @@ export const useCoursesStore = defineStore('courses', () => {
     }
   }
 
-  // Delete a course
-  async function deleteCourse(courseId) {
+  // Delete a course by code (primary key)
+  async function deleteCourse(code) {
     try {
-      loading.value = true
-      await deleteDoc(doc(db, 'cursos', courseId))
-      return { success: true }
+      loading.value = true;
+      console.log('Eliminando curso con código:', code);
+      
+      // First, find the course by code
+      const q = query(collection(db, 'cursos'), where('codigo', '==', String(code)));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        throw new Error(`No se encontró ningún curso con el código: ${code}`);
+      }
+      
+      // Delete all matching documents (should be just one if codigo is unique)
+      const deletePromises = [];
+      querySnapshot.forEach((doc) => {
+        deletePromises.push(deleteDoc(doc.ref));
+        // Remove from local state using the document ID
+        const index = courses.value.findIndex(c => c.id === doc.id);
+        if (index !== -1) {
+          courses.value.splice(index, 1);
+        }
+      });
+      
+      await Promise.all(deletePromises);
+      return { success: true };
+      
     } catch (err) {
-      error.value = 'Error al eliminar el curso'
-      return { success: false, error: error.value }
+      console.error('Error deleting course:', err);
+      error.value = 'Error al eliminar el curso: ' + (err.message || 'Error desconocido');
+      return { success: false, error: error.value };
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
